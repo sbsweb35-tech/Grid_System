@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그리드 시스템 실무 마스터클래스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Pretendard Font Import -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.css" />
+
+    <!-- Application Structure Plan: 미니멀리즘 디자인 유지, 내용/링크 100% 보존. 4부(여백의 마법) 섹션에 심층 이론 텍스트를 에디토리얼 레이아웃에 맞춰 우아하고 가독성 높게 편입 및 정리함. -->
+    
+    <style>
+        /* 타이포그래피 가독성 튜닝 (1.7배 행간) */
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #ffffff; 
+            color: #111827; 
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.7; 
+            letter-spacing: 0.01em; 
+        }
+
+        h1, h2, h3, h4, h5, .display-text {
+            line-height: 1.2 !important; 
+            letter-spacing: -0.02em !important; 
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 320px;
+        }
+
+        .nav-btn.active { border-bottom: 2px solid #111827; color: #111827; font-weight: 600; }
+        .grid-btn.active { background-color: #111827; color: white; border-color: #111827; }
+        
+        .demo-grid-container {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem; 
+        }
+        
+        .demo-item { background-color: #e5e7eb; border-radius: 2px; }
+        
+        .grid-manuscript { grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 3rem; }
+        .grid-column { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .grid-modular { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 0.5rem; }
+        .grid-hierarchical { 
+            grid-template-columns: 2fr 1fr; 
+            grid-template-rows: auto 1fr auto; 
+            gap: 1.5rem; 
+        }
+        .hierarchical-1 { grid-column: 1 / -1; height: 4rem; background-color: #d1d5db; }
+        .hierarchical-2 { grid-column: 1 / 2; height: 100%; }
+        .hierarchical-3 { grid-column: 2 / 3; height: 50%; }
+
+        .baseline-demo {
+            background-image: repeating-linear-gradient(transparent, transparent 27px, #fbcfe8 28px);
+            line-height: 28px;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 4부 본문 스타일링 보조 */
+        .editorial-p {
+            margin-bottom: 1.5rem;
+            color: #374151; /* text-gray-700 */
+            font-weight: 300; /* font-light */
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+<body class="antialiased font-light text-gray-900">
+
+    <nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="flex justify-between items-center h-24"> 
+                <div class="flex items-center">
+                    <span class="text-xl font-semibold text-gray-900 display-text">Grid Masterclass</span>
+                </div>
+                <div class="flex space-x-8 md:space-x-12 overflow-x-auto hide-scrollbar"> 
+                    <button class="nav-btn active px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-intro">커리큘럼 개요</button>
+                    <button class="nav-btn px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-anatomy">1부: 그리드 해부학</button>
+                    <button class="nav-btn px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-placement">2부: 배치와 정렬</button>
+                    <button class="nav-btn px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-cases">3부: 사조와 응용</button>
+                    <button class="nav-btn px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-empty-column">4부: 여백의 마법</button>
+                    <button class="nav-btn px-1 pt-1 border-b-2 border-transparent text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap" data-target="section-resources">리소스 라이브러리</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32">
+
+        <!-- Intro Section -->
+        <section id="section-intro" class="view-section block animate-fade-in">
+            <div class="mb-24 md:mb-32 max-w-4xl"> 
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-light text-gray-900 mb-8 display-text">
+                    디자인 포트폴리오를 살리는<br>
+                    <span class="font-semibold">보이지 않는 뼈대, 그리드 시스템</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-700 font-light max-w-3xl mt-8">
+                    본 커리큘럼은 복잡한 계산이나 난해한 용어(Jargon)를 배제하고, 직관적인 비유를 통해 주니어 디자이너들이 실무 포트폴리오 레이아웃에 즉각적으로 적용할 수 있는 그리드 활용법을 다룹니다.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center"> 
+                <div>
+                    <h2 class="text-2xl font-medium mb-6 text-gray-900 display-text">학습 타임라인 및 비중</h2>
+                    <p class="text-gray-700 mb-12 font-light">성공적인 포트폴리오 완성을 위해 이론보다는 실무 배치 가이드와 사례 분석에 집중합니다. 비전공자도 '눈대중'이 아닌 '명확한 규칙'으로 디자인할 수 있도록 돕습니다.</p>
+                    <ul class="space-y-12 border-l border-gray-200 pl-8"> 
+                        <li class="relative">
+                            <span class="absolute -left-[41px] top-1 h-5 w-5 rounded-full bg-white border border-gray-300 flex items-center justify-center text-[10px] text-gray-600">1</span>
+                            <h3 class="font-medium text-gray-900 text-lg mb-2 display-text">1부: 그리드 해부학 (20%)</h3>
+                            <p class="text-sm text-gray-600 font-light">원고지부터 레고 블록까지, 4가지 핵심 그리드의 이해 및 실무 예시 시각화.</p>
+                        </li>
+                        <li class="relative">
+                            <span class="absolute -left-[41px] top-1 h-5 w-5 rounded-full bg-white border border-gray-300 flex items-center justify-center text-[10px] text-gray-600">2</span>
+                            <h3 class="font-medium text-gray-900 text-lg mb-2 display-text">2부: 배치와 정렬의 기술 (50%)</h3>
+                            <p class="text-sm text-gray-600 font-light">여백의 성역인 거터(Gutter) 사수하기, 베이스라인으로 글줄 맞추기.</p>
+                        </li>
+                        <li class="relative">
+                            <span class="absolute -left-[41px] top-1 h-5 w-5 rounded-full bg-white border border-gray-300 flex items-center justify-center text-[10px] text-gray-600">3</span>
+                            <h3 class="font-medium text-gray-900 text-lg mb-2 display-text">3부: 사조별 응용과 파격 (30%)</h3>
+                            <p class="text-sm text-gray-600 font-light">미니멀리즘부터 브루탈리즘까지 하이엔드 실무 레퍼런스 분석.</p>
+                        </li>
+                        <li class="relative">
+                            <span class="absolute -left-[41px] top-1 h-5 w-5 rounded-full bg-white border border-gray-300 flex items-center justify-center text-[10px] text-gray-600">4</span>
+                            <h3 class="font-medium text-gray-900 text-lg mb-2 display-text">4부: 여백의 마법 (심화)</h3>
+                            <p class="text-sm text-gray-600 font-light">의도적으로 빈 단(Empty Column)을 설정하여 럭셔리한 공간감을 형성하는 실무 기법.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-16 flex flex-col items-center justify-center min-h-[480px]"> 
+                    <div class="chart-container w-full">
+                        <canvas id="curriculumChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs tracking-widest text-gray-500 mt-12 font-medium">데이터 시각화: 커리큘럼 시간 배분</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anatomy Section -->
+        <section id="section-anatomy" class="view-section hidden animate-fade-in">
+            <div class="mb-20 max-w-4xl">
+                <h2 class="text-4xl font-medium mb-6 text-gray-900 display-text">1부: 그리드 해부학</h2>
+                <p class="text-gray-700 text-lg font-light">작업물의 성격에 맞춰 도구를 선택해야 합니다. 아래 4가지 그리드의 버튼을 클릭하여 시각적 구조와 <span class="font-medium text-gray-900">가장 직관적인 실무 트렌드 예시 5선</span>을 확인하세요.</p>
+            </div>
+
+            <!-- 워밍업 가이드 -->
+            <div class="border border-gray-200 p-12 md:p-16 mb-24"> 
+                <h3 class="font-medium text-gray-900 text-2xl mb-6 display-text">
+                    1부 시작 전 워밍업: 빈 칸의 공포 극복하기
+                </h3>
+                <p class="text-gray-700 text-base mb-12 font-light max-w-3xl">"이 투명한 선들(칸) 안에 도대체 어떻게 사진과 글을 넣는 걸까요?" 그리드는 화면 위에 놓인 <span class="font-medium text-gray-900">투명한 이케아 수납장</span>입니다. 초보자도 전문가처럼 수납장을 채우는 3가지 절대 원칙!</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+                    <div>
+                        <div class="font-medium text-gray-900 mb-4 text-lg display-text">1. 자석처럼 선에 붙이기</div>
+                        <p class="text-sm text-gray-600 font-light">대충 가운데 띄워 놓지 마세요. 모든 요소는 그리드의 <span class="font-medium text-gray-900">왼쪽 끝 선에서 시작해 오른쪽 끝 선에서 끝나야</span> 합니다.</p>
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900 mb-4 text-lg display-text">2. 합쳐서 넓게 쓰기 (Spanning)</div>
+                        <div class="text-sm text-gray-600 font-light">하나의 칸에 구겨 넣지 마세요. 큰 이미지는 2칸, 3칸 단위로 <span class="font-medium text-gray-900">확실하게 칸을 합쳐서 가로질러 배치</span>합니다.</div>
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900 mb-4 text-lg display-text">3. 여백도 디자인이다 (White Space)</div>
+                        <p class="text-sm text-gray-600 font-light">수납장을 꽉꽉 채우면 숨이 막힙니다. 의도적으로 특정 칸을 <span class="font-medium text-gray-900">텅 비워두는 것</span>이 가장 럭셔리한 디자인의 비밀입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 그리드 시뮬레이터 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+                <div class="lg:col-span-3 flex flex-row lg:flex-col gap-4 overflow-x-auto hide-scrollbar pb-6 lg:pb-0"> 
+                    <button class="grid-btn active w-full px-8 py-5 border border-gray-200 text-left font-medium transition-colors whitespace-nowrap lg:whitespace-normal" data-grid="manuscript">블록/원고지 그리드</button>
+                    <button class="grid-btn w-full px-8 py-5 border border-gray-200 text-left font-medium transition-colors whitespace-nowrap lg:whitespace-normal text-gray-600" data-grid="column">단 그리드 (Column)</button>
+                    <button class="grid-btn w-full px-8 py-5 border border-gray-200 text-left font-medium transition-colors whitespace-nowrap lg:whitespace-normal text-gray-600" data-grid="modular">모듈 그리드 (Modular)</button>
+                    <button class="grid-btn w-full px-8 py-5 border border-gray-200 text-left font-medium transition-colors whitespace-nowrap lg:whitespace-normal text-gray-600" data-grid="hierarchical">계층 그리드 (Hierarchical)</button>
+                </div>
+                
+                <div class="lg:col-span-9">
+                    <!-- 상단 설명 & 메인 비주얼 -->
+                    <div class="flex flex-col md:flex-row gap-16 items-center mb-24"> 
+                        <div class="w-full md:w-5/12">
+                            <div id="grid-visual-display" class="h-72 w-full bg-white flex items-center justify-center p-8 border border-gray-200">
+                                <div id="grid-demo-area" class="demo-grid-container grid-manuscript">
+                                    <div class="demo-item"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-7/12">
+                            <h3 id="grid-title" class="text-3xl font-medium mb-6 text-gray-900 display-text">블록/원고지 그리드</h3>
+                            <p id="grid-metaphor" class="text-xs tracking-widest font-medium text-gray-500 mb-8 block uppercase">비유: 넉넉한 여백을 가진 한 장의 원고지</p>
+                            <p id="grid-desc" class="text-gray-700 font-light text-base max-w-lg">
+                                화면 중앙에 커다란 텍스트 블록 하나만 배치하는 가장 단순한 형태입니다. 여백(Margin)이 페이지를 감싸며 글을 읽는 호흡을 편안하게 해줍니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 직관적인 실무 트렌드 예시 5선 (가로 스크롤 카드) -->
+                    <div>
+                        <h4 class="font-medium text-xl mb-8 text-gray-900 display-text">가장 직관적인 실무 적용 예시 5선</h4>
+                        <div id="examples-container" class="flex overflow-x-auto gap-8 pb-8 snap-x hide-scrollbar"> 
+                            <!-- 예시 카드가 동적으로 주입됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Placement Section -->
+        <section id="section-placement" class="view-section hidden animate-fade-in">
+            <div class="mb-24 max-w-4xl">
+                <h2 class="text-4xl font-medium mb-6 text-gray-900 display-text">2부: 배치와 정렬의 기술</h2>
+                <p class="text-gray-700 text-lg font-light">아무리 좋은 그리드를 깔아도 요소(요소)를 얹는 방법을 모르면 레이아웃은 붕괴됩니다. 주니어 디자이너가 명심해야 할 핵심 가이드입니다.</p>
+            </div>
+
+            <div class="space-y-32"> 
+                
+                <!-- 1. 그리드 해부학 용어 사전 -->
+                <div>
+                    <h3 class="text-2xl font-medium mb-12 text-gray-900 display-text">1. 그리드 해부학 용어 사전</h3>
+                    <p class="mb-12 text-gray-700 font-light max-w-4xl leading-relaxed">본격적인 규칙을 설명하기 전에, 학생들이 가장 헷갈려하는 3가지 용어(단, 거터, 마진)를 '도로(차선)'에 비유하여 한눈에 정리합니다.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16">
+                        <div class="border border-gray-200 p-10 lg:p-12 flex flex-col h-full bg-white hover:border-gray-900 transition-colors">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">주행 차선</span>
+                            <h4 class="font-medium text-gray-900 text-xl mb-4 display-text">단 (Column)</h4>
+                            <p class="text-sm text-gray-600 font-light flex-grow leading-relaxed">자동차(콘텐츠)가 달리는 실제 공간입니다.</p>
+                        </div>
+                        <div class="border border-gray-200 p-10 lg:p-12 flex flex-col h-full bg-white hover:border-gray-900 transition-colors">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">중앙선 / 안전지대</span>
+                            <h4 class="font-medium text-gray-900 text-xl mb-4 display-text">거터 (Gutter)</h4>
+                            <p class="text-sm text-gray-600 font-light flex-grow leading-relaxed">차선과 차선 사이의 공간입니다. 이곳을 침범하면 대형 사고(레이아웃 붕괴)가 납니다. 절대 비워두어야 하는 숨통입니다.</p>
+                        </div>
+                        <div class="border border-gray-200 p-10 lg:p-12 flex flex-col h-full bg-white hover:border-gray-900 transition-colors">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">인도 / 가드레일</span>
+                            <h4 class="font-medium text-gray-900 text-xl mb-4 display-text">여백/마진 (Margin)</h4>
+                            <p class="text-sm text-gray-600 font-light flex-grow leading-relaxed">페이지 전체를 감싸는 바깥 테두리입니다. 독자가 책이나 스마트폰을 쥘 때 콘텐츠를 가리지 않게 해주는 여유 공간입니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 거터 -->
+                <div class="pt-16 border-t border-gray-100">
+                    <h3 class="text-2xl font-medium mb-12 text-gray-900 display-text">2. 거터(Gutter): 여백의 성역 사수하기</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+                        <div class="border border-gray-200 p-12 lg:p-16 flex flex-col justify-between h-full"> 
+                            <div>
+                                <h4 class="font-medium text-gray-900 text-lg mb-6 display-text">치명적 실수 (Don't)</h4>
+                                <p class="text-sm text-gray-600 font-light mb-12">단 간격(Gutter)을 무시하고 텍스트 박스나 이미지를 단 중간에 임의로 걸치거나, 거터 영역을 침범하여 배치하는 것. <span class="font-medium text-gray-900">"도로의 중앙선 위에 주차하는 것과 같습니다."</span></p>
+                            </div>
+                            <div class="h-48 flex gap-8 p-8 border border-gray-200 relative bg-gray-50 mt-auto">
+                                <div class="w-1/2 h-full bg-white border border-gray-200"></div>
+                                <div class="w-1/2 h-full bg-white border border-gray-200"></div>
+                                <div class="absolute w-3/4 h-20 bg-gray-200 left-1/2 transform -translate-x-1/2 top-14 border border-gray-400 flex items-center justify-center text-[10px] font-medium text-gray-700 tracking-widest uppercase">거터 무시</div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-900 p-12 lg:p-16 bg-gray-900 flex flex-col justify-between h-full">
+                            <div>
+                                <h4 class="font-medium text-white text-lg mb-6 display-text">엄격한 규칙 (Do)</h4>
+                                <p class="text-sm text-gray-300 font-light mb-12">모든 텍스트 박스와 이미지는 반드시 <span class="font-medium text-white">단의 시작 선에서 시작하여 단의 끝 선에서 끝나야</span> 합니다. 거터는 여백으로 온전히 남겨두어 시각적 숨통을 트여줍니다.</p>
+                            </div>
+                            <div class="h-48 flex gap-8 p-8 border border-gray-700 bg-gray-800 mt-auto">
+                                <div class="w-1/2 h-full bg-transparent border border-gray-700 relative">
+                                    <div class="absolute inset-0 bg-white flex items-center justify-center text-[10px] font-medium text-gray-900 tracking-widest uppercase">단폭에 딱 맞춤</div>
+                                </div>
+                                <div class="w-1/2 h-full bg-transparent border border-gray-700 relative">
+                                    <div class="absolute inset-x-0 top-0 h-12 bg-white"></div>
+                                    <div class="absolute inset-x-0 bottom-0 h-12 bg-white"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 베이스라인 Before & After -->
+                <div class="pt-16 border-t border-gray-100">
+                    <h3 class="text-2xl font-medium mb-8 text-gray-900 display-text">3. 베이스라인 그리드 (Baseline Grid): Before & After</h3>
+                    <p class="mb-12 text-gray-700 font-light max-w-4xl leading-relaxed">베이스라인은 글자의 '발'이 닿는 가상의 가로선입니다. "공책에 줄을 안 맞추고 쓰면 어떻게 되나요?" 눈으로 직접 비교하며 사소한 디테일이 주는 거대한 차이를 확인해 보세요.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start mb-12">
+                        <!-- Before -->
+                        <div class="border border-gray-200 overflow-hidden flex flex-col shadow-sm h-full">
+                            <div class="bg-gray-50 border-b border-gray-200 py-4 px-8 text-xs font-medium text-gray-500 tracking-widest uppercase flex items-center gap-3">
+                                <span class="text-gray-900 font-bold text-sm">X</span> Before - 초보자의 실수
+                            </div>
+                            <div class="p-8 lg:p-12 bg-white flex flex-col h-full">
+                                <div class="baseline-demo relative h-40 mb-8 border-b border-gray-100 pb-4">
+                                    <div class="grid grid-cols-2 gap-6 relative z-10">
+                                        <div class="text-sm text-gray-800 font-light leading-[28px] mt-0">
+                                            기준선(분홍선)에 잘 맞춰진<br>왼쪽 글줄입니다.
+                                        </div>
+                                        <div class="text-sm text-gray-900 font-medium leading-[28px] mt-[10px]">
+                                            오른쪽 글줄은 무시하고 어긋납니다.<br>글씨 높이가 미세하게 다릅니다.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 p-6 border border-gray-200 mt-auto">
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 display-text">무엇이 문제일까요?</h5>
+                                    <p class="text-sm text-gray-600 font-light leading-relaxed">양쪽 글씨 높이가 어긋나 독자의 시선이 지그재그로 흔들립니다. 마치 <strong>'셔츠 단추를 한 칸 잘못 채운 것'</strong>처럼 묘하게 불안정하고 엉성해 보여 디자인의 신뢰도를 떨어뜨립니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- After -->
+                        <div class="border border-gray-900 overflow-hidden flex flex-col shadow-md h-full">
+                            <div class="bg-gray-900 border-b border-gray-800 py-4 px-8 text-xs font-medium text-white tracking-widest uppercase flex items-center gap-3">
+                                <span class="text-white font-bold text-sm">O</span> After - 프로의 정렬
+                            </div>
+                            <div class="p-8 lg:p-12 bg-white flex flex-col h-full">
+                                <div class="baseline-demo relative h-40 mb-8 border-b border-gray-100 pb-4">
+                                    <div class="grid grid-cols-2 gap-6 relative z-10">
+                                        <div class="text-sm text-gray-800 font-light leading-[28px] mt-0">
+                                            기준선(분홍선)에 잘 맞춰진<br>왼쪽 글줄입니다.
+                                        </div>
+                                        <div class="text-sm text-gray-900 font-medium leading-[28px] mt-0">
+                                            오른쪽 글줄도 똑같이 맞췄습니다.<br>투명한 줄 위에 나란히 서있습니다.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 p-6 border border-gray-200 mt-auto">
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 display-text">왜 이렇게 해야 할까요?</h5>
+                                    <p class="text-sm text-gray-600 font-light leading-relaxed">글씨 밑단이 자를 대고 그은 듯 일직선을 이룹니다. 시선이 덜컹거림 없이 <strong>수평으로 부드럽게 미끄러지며</strong>, 화면 전체가 압도적으로 깔끔하고 전문가스러워집니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 기존 꿀팁 -->
+                    <div class="bg-gray-50 p-12 lg:p-16 border border-gray-100">
+                        <h4 class="font-medium text-xl mb-6 text-gray-900 display-text">꿀팁: 지루함을 피하는 여백의 기술</h4>
+                        <p class="text-sm text-gray-600 font-light mb-4">규칙을 지키다 보면 레이아웃이 딱딱해질 수 있습니다. 이럴 때 <span class="font-medium text-gray-900">'의도적 빈 단(Empty Column)'</span>을 활용하세요.</p>
+                        <p class="text-sm text-gray-600 font-light">예를 들어 4단 그리드에서 텍스트를 2, 3, 4단에만 배치하고 1단은 과감하게 비워두면(White Space), 시선이 머무는 럭셔리한 공간감이 형성됩니다.</p>
+                    </div>
+                </div>
+
+                <!-- 4. 이미지와 텍스트 짝꿍 맞추기 -->
+                <div class="pt-16 border-t border-gray-100">
+                    <h3 class="text-2xl font-medium mb-8 text-gray-900 display-text">4. 이미지와 텍스트 짝꿍 맞추기 (Cap & Base 정렬)</h3>
+                    <p class="mb-12 text-gray-700 font-light max-w-4xl leading-relaxed">거터와 베이스라인 규칙을 알아도 "사진 한 장과 글씨"를 나란히 둘 때 우왕좌왕합니다. 실무에서 가장 많이 쓰이는 '위아래 끝선 맞추기' 절대 공식입니다. 텍스트 박스와 이미지가 하나의 거대한 '직사각형 덩어리'처럼 보이게 만들어 화면이 놀랍도록 깔끔해집니다.</p>
+
+                    <div class="border border-gray-200 p-12 lg:p-20 bg-gray-50 flex items-center justify-center">
+                        <div class="flex gap-10 relative w-full max-w-3xl bg-white p-12 border border-gray-200 shadow-sm">
+                            
+                            <!-- 가이드 라인 (대시 선) -->
+                            <div class="absolute left-6 right-6 top-12 h-[1px] border-t border-dashed border-gray-400 z-20"></div>
+                            <div class="absolute left-6 right-6 bottom-12 h-[1px] border-t border-dashed border-gray-400 z-20"></div>
+                            
+                            <!-- 가이드 라인 뱃지 -->
+                            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-[10px] tracking-widest px-3 py-1 font-medium rounded-[1px]">Cap-height 일치</div>
+                            <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-[10px] tracking-widest px-3 py-1 font-medium rounded-[1px]">Baseline 일치</div>
+                            
+                            <!-- 사진 영역 -->
+                            <div class="w-1/2 bg-gray-200 relative z-10 border border-gray-300 min-h-[220px] flex items-center justify-center">
+                                <span class="text-xs text-gray-500 tracking-widest uppercase font-medium">Image Area</span>
+                            </div>
+                            
+                            <!-- 텍스트 영역 -->
+                            <div class="w-1/2 relative z-10 flex flex-col justify-between">
+                                <div>
+                                    <div class="text-lg font-medium text-gray-900 leading-none mb-3 display-text">상단 맞추기</div>
+                                    <div class="text-sm text-gray-600 font-light leading-relaxed">사진의 맨 윗선과 텍스트의 첫 줄(머리)을 수평으로 완벽히 일치시킵니다.</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-medium text-gray-900 leading-none mb-3 display-text">하단 맞추기</div>
+                                    <div class="text-sm text-gray-600 font-light leading-relaxed">사진의 맨 아랫선과 텍스트의 마지막 줄(발)을 수평으로 완벽히 일치시킵니다.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Cases Section -->
+        <section id="section-cases" class="view-section hidden animate-fade-in">
+            <div class="mb-24 max-w-4xl">
+                <h2 class="text-4xl font-medium mb-6 text-gray-900 display-text">3부: 사조와 응용 (Case Studies)</h2>
+                <p class="text-gray-700 text-lg font-light">규칙을 완벽히 이해했다면, 컨셉에 따라 규칙을 변형하거나 파괴하여 시각적 긴장감을 만들어낼 수 있습니다. 패키지와 웹사이트 실무 예시를 고르게 분석합니다.</p>
+            </div>
+
+            <div class="space-y-40"> 
+                
+                <!-- 1. 미니멀리즘 -->
+                <div>
+                    <h3 class="text-2xl font-medium mb-12 text-gray-900 display-text">
+                        1. 미니멀리즘 & 럭셔리 (Minimalism & Luxury)
+                    </h3>
+                    
+                    <!-- Hero Card -->
+                    <div class="border border-gray-200 flex flex-col lg:flex-row mb-16">
+                        <div class="w-full lg:w-[40%] bg-gray-50 h-72 lg:h-auto flex items-center justify-center p-12 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200">
+                            <div class="w-full h-full max-w-[240px] grid grid-cols-4 grid-rows-4 gap-3 p-6 bg-white border border-gray-200">
+                                <div class="bg-gray-900 col-span-2 row-span-2"></div>
+                                <div class="bg-gray-200"></div><div class="bg-gray-200"></div>
+                                <div class="bg-gray-200 col-span-2"></div>
+                                <div class="bg-gray-200 row-span-2"></div>
+                                <div class="bg-gray-200"></div><div class="bg-gray-200"></div><div class="bg-gray-200"></div>
+                            </div>
+                        </div>
+                        <div class="w-full lg:w-[60%] p-16 lg:p-24 flex flex-col justify-center">
+                            <h4 class="text-3xl font-medium mb-6 text-gray-900 display-text">모듈 그리드의 정제된 미학</h4>
+                            <p class="text-gray-700 text-lg font-light max-w-xl">스위스 스타일, 하이엔드 뷰티 브랜드 등에서 나타납니다. 화면을 잘게 쪼갠 모듈을 조합하여 요소들을 엄격하게 통제합니다. 기능적이고 차분하며 여백(Negative Space)을 극대화하여 럭셔리한 신뢰감을 줍니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 3 Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                        <a href="https://www.aesop.com/" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">패키지 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">이솝 (Aesop)</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">미니멀리즘 & 럭셔리 그리드</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">타이포그래피와 그리드 시스템, 시각적 노이즈를 최소화한 위계를 통해 브랜드 정체성을 확립했습니다. 철저한 정렬과 세심한 여백 활용으로 디자인 스쿨 필수 연구 사례로 꼽힙니다.</p>
+                        </a>
+                        <a href="https://www.behance.net/gallery/128280147/Furniture-Design-Exploration" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">웹사이트 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">Furniture Design</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">미니멀리즘 & 스위스 스타일</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">Børge Mogensen 가구 웹사이트 프로토타입. 밝은 톤의 여백을 활용해 깨끗한 느낌을 주며, 사진과 타이포그래피를 엄격한 그리드 안에 배치하여 안정적인 구도를 완성합니다.</p>
+                        </a>
+                        <a href="https://www.behance.net/gallery/85023683/Mone-Natural-Skincare-Branding" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">패키지 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">Mone Natural Skincare</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">친환경 모듈 그리드</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">복잡한 그래픽 대신 여백을 강조한 텍스트 배치와 얇은 선으로 구성된 그리드를 사용하여, 타이포그래피만으로도 제품의 순수함을 시각적으로 잘 전달합니다.</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. 브루탈리즘 -->
+                <div>
+                    <h3 class="text-2xl font-medium mb-12 text-gray-900 display-text">
+                        2. 디지털 브루탈리즘 & 아방가르드 (Brutalism & Avant-Garde)
+                    </h3>
+                    
+                    <!-- Hero Card -->
+                    <div class="border border-gray-200 flex flex-col lg:flex-row mb-16">
+                        <div class="w-full lg:w-[40%] bg-gray-900 h-72 lg:h-auto flex items-center justify-center relative overflow-hidden shrink-0 border-b lg:border-b-0 lg:border-r border-gray-900">
+                            <h2 class="text-white text-6xl md:text-7xl font-black tracking-tighter transform -rotate-3 whitespace-nowrap relative z-10 pl-8 display-text">BRUTALISM</h2>
+                            <div class="w-56 h-56 border border-gray-600 rounded-full absolute -bottom-12 -right-12 z-20"></div>
+                        </div>
+                        <div class="w-full lg:w-[60%] p-16 lg:p-24 flex flex-col justify-center">
+                            <h4 class="text-3xl font-medium mb-6 text-gray-900 display-text">의도적 노출과 파괴</h4>
+                            <p class="text-gray-700 text-lg font-light max-w-xl">디지털 네이티브 세대의 반항적이고 자유로운 감성을 표현합니다. 정형화된 그리드를 완전히 부수거나 반대로 그리드 선을 와이어프레임처럼 노골적으로 노출시켜 디자인의 '날것(Raw)' 매력과 시각적 긴장감을 극대화합니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 3 Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                        <a href="https://www.off---white.com/" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">웹사이트 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">Off-White™ Official</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">아방가르드 & 와이어프레임 노출</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">버질 아블로의 철학이 담긴 오프화이트 웹사이트는 시스템의 뼈대(그리드 라인)를 숨기지 않고 겉으로 드러내는 극단적 트렌드를 보여줍니다. 기본 폰트를 사용하고 이미지 위로 텍스트를 무심하게 겹치는(Overlap) 방식으로 가장 쿨한 브루탈리즘을 완성했습니다.</p>
+                        </a>
+                        <a href="https://www.behance.net/gallery/154037199/Nike-Move-to-Zero-Global-Rebrand" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">웹사이트 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">Nike Move to Zero</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">동적 그리드 & 대형 타이포그래피</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">나이키 지속가능성 캠페인의 브랜딩 사례입니다. 거대한 타이포그래피가 단(Column)을 무시하며 화면 밖으로 잘려나가게 배치되거나, 비대칭적인 반응형 모듈이 교차하는 역동적인 그리드 디자인으로 젊고 강렬한 에너지를 발산합니다.</p>
+                        </a>
+                        <a href="https://www.oatly.com/" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">패키지 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">오틀리 (Oatly) 패키징</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">안티 디자인(Anti-Design) & 파격</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">기존 음료 패키지의 얌전한 문법을 박살낸 혁명적인 디자인입니다. 정돈된 여백 없이 제품의 측면과 후면을 복잡한 크기의 타이포그래피와 그림으로 꽉 채웁니다. 그리드의 규칙에서 의도적으로 이탈하여 브랜드 특유의 유쾌하고 반항적인 목소리를 전달합니다.</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. 저널리즘 -->
+                <div>
+                    <h3 class="text-2xl font-medium mb-12 text-gray-900 display-text">
+                        3. 저널리즘 & 고밀도 정보 전달 (Editorial)
+                    </h3>
+                    
+                    <!-- Hero Card -->
+                    <div class="border border-gray-200 flex flex-col lg:flex-row mb-16">
+                        <div class="w-full lg:w-[40%] bg-gray-50 h-72 lg:h-auto flex items-center justify-center p-12 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200">
+                            <div class="w-full h-full max-w-[240px] bg-white flex gap-6 p-6 border border-gray-200">
+                                <div class="w-1/4 h-full border-r border-gray-200"></div>
+                                <div class="w-1/4 h-full border-r border-gray-200"></div>
+                                <div class="w-1/2 h-full bg-gray-50 flex flex-col justify-start p-3 gap-3"><div class="w-full h-2 bg-gray-300"></div><div class="w-3/4 h-2 bg-gray-300"></div><div class="w-1/2 h-2 bg-gray-300"></div></div>
+                            </div>
+                        </div>
+                        <div class="w-full lg:w-[60%] p-16 lg:p-24 flex flex-col justify-center">
+                            <h4 class="text-3xl font-medium mb-6 text-gray-900 display-text">공간감을 빚는 다단 그리드</h4>
+                            <p class="text-gray-700 text-lg font-light max-w-xl">신문(Journal)의 편집 레이아웃에서 차용한 객관적인 방식입니다. 신뢰감을 주기 위해 철저히 계산된 간격과 장식 없는 표/리스트 형태를 사용하며, 텍스트 중심의 고밀도 정보를 세련되게 전달하는 데 탁월합니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 3 Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                        <a href="https://theordinary.com/" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">패키지 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">디 오디너리 (The Ordinary)</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">정보 전달 & 객관적 그리드</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">화려한 마케팅 요소를 걷어내고 성분 자체에 집중하기 위해 약국/실험실 스타일의 폰트와 번호를 매긴 레이아웃을 사용합니다. 철저히 계산된 장식 없는 표 형태의 그리드는 신뢰감을 줍니다.</p>
+                        </a>
+                        <a href="https://www.ssense.com/" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">웹사이트 디자인</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">SSENSE (에센스)</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">하이엔드 이커머스의 정석</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">글로벌 패션 플랫폼. 흑백 텍스트와 촘촘한 다단(Column) 그리드만을 뼈대로 사용하여, 마치 객관적인 신문 기사를 읽는 듯한 높은 신뢰감과 방대한 정보를 극도로 세련되게 전달합니다.</p>
+                        </a>
+                        <a href="https://www.behance.net/search/projects?search=swiss+style+grid+editorial" target="_blank" class="p-12 border border-gray-200 flex flex-col hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 cursor-pointer block group">
+                            <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">편집 레이아웃</span>
+                            <h5 class="font-medium text-2xl text-gray-900 mb-3 display-text group-hover:underline">High-end Editorial</h5>
+                            <p class="text-sm text-gray-500 mb-8 font-light">여백을 활용한 12단 그리드</p>
+                            <p class="text-sm text-gray-700 font-light flex-grow">하이엔드 인테리어 브로셔 사례. 12단과 같이 세밀한 그리드를 깐 뒤, 실제로는 4단만 텍스트로 채우고 나머지 8단을 과감하게 여백으로 두어 압도적인 럭셔리 공간감을 빚어냅니다.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 신규 탭: 4부 여백의 마법 (심층 이론 편입) -->
+        <section id="section-empty-column" class="view-section hidden animate-fade-in">
+            <!-- 1. 도입 파트 -->
+            <div class="mb-24 md:mb-32 border-b border-gray-200 pb-16">
+                <span class="text-[10px] tracking-widest text-gray-500 font-medium uppercase mb-6 block">Deep Dive Theory</span>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-8 display-text">4부: 여백의 마법<br><span class="text-2xl md:text-3xl text-gray-500 mt-4 block">(의도적 빈 단, Empty Column)</span></h2>
+                <div class="max-w-4xl mt-16">
+                    <h3 class="text-2xl font-medium mb-8 text-gray-900 display-text">1. 도입: 공간을 대하는 철학의 전환과 여백의 재발견</h3>
+                    <p class="editorial-p">시각 디자인 및 에디토리얼 레이아웃의 역사에서 오랫동안 전 세계의 디자이너들을 지배해 온 심리적 강박 중 하나는 이른바 '공백 공포증(Horror Vacui)'이다. 캔버스나 지면의 모든 공간을 텍스트, 이미지, 그리고 장식적인 요소들로 가득 채워야만 정보 전달의 효율성이 극대화되고 매체의 가치가 상승한다는 고전적인 믿음은, 정보 과잉의 현대 사회에 이르러 오히려 독자의 인지적 피로도를 가중시키고 메시지의 본질을 흐리는 부작용을 낳았다. 하이엔드 시각 디자인과 에디토리얼 레이아웃의 정수는 단순히 정보를 물리적 지면 위에 빈틈없이 나열하는 것을 넘어, 독자의 시선을 정교하게 통제하고 호흡을 조절하며 브랜드가 지향하는 철학을 시각적 구조 자체로 투영하는 데 있다.</p>
+                    <p class="editorial-p">이러한 맥락에서 '여백(Whitespace)' 혹은 네거티브 스페이스(Negative Space)는 더 이상 콘텐츠를 채우고 남은 수동적인 찌꺼기나 의미 없는 배경이 아니라, 그 자체로 뚜렷한 형태와 질량, 그리고 무게를 지닌 독립적인 디자인 요소로 격상되어야 마땅하다. 특히 제2차 세계대전 이후 스위스를 중심으로 발달하여 현대 그래픽 디자인의 뼈대가 된 국제 타이포그래피 스타일(International Typographic Style), 이른바 스위스 스타일(Swiss Style)은 장식을 철저히 배제하고 수학적 그리드와 여백을 통한 객관적이고 보편적인 커뮤니케이션을 주창했다. 바젤 디자인 학교(Allgemeine Gewerbeschule Basel)와 취리히 응용미술학교(Kunstgewerbeschule Zürich)의 거장들이 확립한 이 시스템 속에서, 다단 그리드(Multi-column Grid) 내의 특정 단을 의도적으로 비워두는 '빈 단(Empty Column)' 기법은 레이아웃에 우아함과 구조적 긴장감을 동시에 부여하는 가장 강력한 타이포그래피 제어 도구로 자리 잡았다.</p>
+                    <p class="editorial-p">본 연구는 디자인 아카데미 수강생 및 레이아웃 구조론을 학습하는 이들이 캔버스의 모든 픽셀을 꽉 채우려는 일차원적이고 본능적인 강박에서 벗어나, 여백을 적극적이고 조형적인 커뮤니케이션 요소로 다루는 기법을 심층적으로 체화할 수 있도록 기획되었다. 게슈탈트 심리학(Gestalt Psychology)에 기반한 시각 인지 원리를 바탕으로 추상적인 타이포그래피 이론을 건축, 인테리어, 전시 공간 등의 직관적인 공간 비유를 통해 시각화할 것이다. 아울러 글로벌 하이엔드 매체 및 럭셔리 브랜드의 실무 레퍼런스와 타이포그래피 역사를 관통하는 고전 작품들을 철저히 해부하여, 실전 포트폴리오에 즉각적으로 적용할 수 있는 정교한 가이드라인을 제시하고자 한다.</p>
+                </div>
+            </div>
+
+            <div class="space-y-40 max-w-6xl">
+                
+                <!-- 2. 핵심 리서치 대상 + 기존 시각 카드 병합 -->
+                <div class="border-b border-gray-200 pb-40">
+                    <h3 class="text-3xl font-medium mb-12 text-gray-900 display-text">2. 핵심 리서치 대상: 빈 단(Empty Column)의 심층 분석과 인지적 효과</h3>
+                    <p class="editorial-p max-w-4xl mb-24">그리드 시스템 내에서 단(Column)을 통째로 비운다는 것은 지면 위에 단순히 정보의 부재를 만들어내는 것이 아니다. 이는 독자의 시선이 머물고, 이동하고, 정보를 소화하며 호흡할 수 있는 '보이지 않는 길'을 개척하는 적극적인 공간 설계 작업이다. 사용자가 제시한 세 가지 기본 빈 단 제어 기법은 에디토리얼 디자인의 완성도와 매체의 성격을 결정짓는 핵심적인 뼈대 역할을 수행한다.</p>
+
+                    <div class="space-y-32">
+                        <!-- 2.1 좌측 빈 단 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">2.1. 좌측 빈 단 (Left Empty Column): 시선 유도의 원리와 에디토리얼의 정석</h4>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                                <div>
+                                    <p class="editorial-p text-sm">서구권 및 현대의 가로쓰기 문화권에서 인간의 안구는 본능적이고 습관적으로 지면의 '좌측 상단'에서부터 정보를 탐색하기 시작한다. 이러한 인지적 특성을 고려할 때, 3단 또는 4단 등 다단 그리드 시스템에서 독자의 시선이 가장 먼저 닿는 첫 번째 좌측 단을 의도적으로 완전히 비워두고 텍스트를 우측으로 밀어 배치하는 기법은 하이엔드 에디토리얼 디자인의 가장 고전적이면서도 세련된 정석으로 평가받는다. 스위스 학파는 좌측 정렬(Left alignment)과 비대칭적 레이아웃을 그래픽 스타일의 기초로 삼으며 이 기법을 고도화했다.</p>
+                                    <p class="editorial-p text-sm">이 기법이 창출하는 가장 큰 시각적 효과는 텍스트가 본격적으로 시작되기 전, 독자에게 무의식적인 시각적 휴식과 진입의 여유를 제공한다는 점이다. 왼쪽이 넓게 비어 있고 오른쪽으로 콘텐츠가 밀집됨으로써, 독자의 시선은 거부감 없이 자연스럽게 우측의 본문으로 미끄러지듯 진입하게 된다. 또한 이 좌측 여백은 본문 텍스트가 지면 위에 우아하고 단단하게 안착해 있다는 구조적 안정감을 부여하며, 각주나 캡션 등 부가적인 정보를 위한 예비 공간으로 활용되어 정보의 위계(Hierarchy)를 명확히 하는 데 기여한다.</p>
+                                </div>
+                                <div>
+                                    <p class="editorial-p text-sm">이러한 좌측 빈 단의 작동 원리는 고급 박물관이나 갤러리의 도입부 복도(Entrance Corridor)에 비유할 수 있다. 훌륭하게 설계된 미술관은 관람객이 문을 열고 들어서자마자 곧바로 거대한 작품을 들이밀며 압도하지 않는다. 대신, 관람객은 고요하고 텅 빈 긴 복도를 걸어 들어가며 일상과 외부의 소음을 잊고, 다가올 작품의 세계에 온전히 집중할 수 있도록 마음의 준비를 하게 된다. 좌측 빈 단 역시 독자의 뇌를 인지적으로 리셋하여, 이어지는 본문 텍스트와 이미지에 깊이 몰입하게 만드는 우아한 진입로 역할을 수행하는 것이다.</p>
+                                </div>
+                            </div>
+                            <!-- Hero Card -->
+                            <div class="border border-gray-200 flex flex-col lg:flex-row mb-12">
+                                <div class="w-full lg:w-[40%] bg-gray-50 h-72 lg:h-auto flex items-center justify-center p-12 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200">
+                                    <div class="w-full h-full max-w-[240px] flex gap-3 p-6 bg-white border border-gray-200 shadow-sm">
+                                        <div class="flex-1 bg-transparent border border-dashed border-gray-300 relative"><span class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-400 tracking-widest font-medium uppercase">Empty</span></div>
+                                        <div class="flex-1 bg-gray-300"></div><div class="flex-1 bg-gray-300"></div><div class="flex-1 bg-gray-300"></div>
+                                    </div>
+                                </div>
+                                <div class="w-full lg:w-[60%] p-16 flex flex-col justify-center">
+                                    <h5 class="text-2xl font-medium mb-4 text-gray-900 display-text">심리적 여유와 시선 유도</h5>
+                                    <p class="text-gray-600 text-sm font-light leading-relaxed">전통적인 고급 매거진 인쇄 매체에서 유래한 럭셔리 레이아웃입니다. 시선이 가장 먼저 닿는 좌측 영역을 시원하게 비워두어 독자에게 심리적 여유를 제공하고, 자연스럽게 우측 본문으로 시선을 미끄러지듯 유도합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2.2 비대칭 빈 단 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">2.2. 비대칭 빈 단 (Asymmetric Empty Column): 리듬감과 시각적 긴장감의 부여</h4>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                                <div>
+                                    <p class="editorial-p text-sm">모든 요소가 중앙을 기준으로 완벽하게 균형을 이루는 대칭적(Symmetrical) 레이아웃은 정적이고 안정적이며 권위적인 인상을 주지만, 정보의 흐름이 길어질 경우 자칫 치명적인 지루함을 유발할 수 있다. 반면, 다단 그리드 내에서 비규칙적인 위치에 빈 단을 배치하는 '비대칭 빈 단' 기법은 지면에 역동적인 리듬감과 고도의 시각적 긴장감(Visual Tension)을 불어넣는다. 예를 들어 5단 그리드 시스템에서 2번째와 4번째 단을 교차로 비우거나, 홀수 단만을 선택적으로 비우는 방식이 이에 해당한다.</p>
+                                    <p class="editorial-p text-sm">1920년대 바우하우스(Bauhaus)와 러시아 구성주의(Russian Constructivism)의 영향을 받아 스위스 그래픽 디자인에서 만개한 비대칭 레이아웃 전통은, 예측 불가능한 공간 배치를 통해 독자의 시각 신경을 지속적으로 자극한다. 텍스트, 이미지, 그리고 빈 단이 대칭의 규칙을 깨고 비대칭적으로 얽히면서 지면은 마치 스스로 호흡하고 움직이는 듯한 강렬한 운동감을 획득하게 되며, 이는 전체 레이아웃에 대단히 모던하고 진취적인 인상을 각인시킨다.</p>
+                                </div>
+                                <div>
+                                    <p class="editorial-p text-sm">비대칭 빈 단의 이러한 조형적 쾌감은 자하 하디드(Zaha Hadid)나 프랭크 게리(Frank Gehry)가 설계한 해체주의 건축물의 비대칭 파사드(Facade)와 완벽하게 조응한다. 수직과 수평이 기계적으로 딱 맞아떨어지는 고전주의 건축물이 대칭 그리드라면, 층고가 제각각이고 창문과 테라스의 위치가 불규칙적으로 뚫려 있어 태양의 궤적에 따라 끊임없이 빛과 그림자의 새로운 리듬을 만들어내는 현대 건축물의 외관이 바로 비대칭 빈 단이 의도하는 시각적 에너지의 실체다.</p>
+                                </div>
+                            </div>
+                            <!-- Hero Card -->
+                            <div class="border border-gray-200 flex flex-col lg:flex-row mb-12">
+                                <div class="w-full lg:w-[40%] bg-gray-50 h-72 lg:h-auto flex items-center justify-center p-12 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200">
+                                    <div class="w-full h-full max-w-[240px] grid grid-cols-2 grid-rows-2 gap-3 p-6 bg-white border border-gray-200 shadow-sm">
+                                        <div class="bg-transparent border border-dashed border-gray-300 relative"><span class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-400 tracking-widest font-medium uppercase">Empty</span></div>
+                                        <div class="bg-gray-400"></div><div class="bg-gray-300"></div>
+                                        <div class="bg-transparent border border-dashed border-gray-300 relative"><span class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-400 tracking-widest font-medium uppercase">Empty</span></div>
+                                    </div>
+                                </div>
+                                <div class="w-full lg:w-[60%] p-16 flex flex-col justify-center">
+                                    <h5 class="text-2xl font-medium mb-4 text-gray-900 display-text">스크롤을 부르는 시각적 긴장감</h5>
+                                    <p class="text-gray-600 text-sm font-light leading-relaxed">모듈 그리드나 다단 그리드에서 썸네일을 빽빽하게 채우지 않고, 지그재그(Zig-zag) 형태로 빈 단을 섞어 배치합니다. 정적인 바둑판 배열을 탈피하여 스크롤을 내릴 때마다 새로운 리듬감과 긴장감을 부여합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2.3 외곽 빈 단 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">2.3. 외곽 빈 단 (Gutter & Margin Expansion): 록인(Lock-in) 몰입 효과와 가치의 상승</h4>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                                <div>
+                                    <p class="editorial-p text-sm">지면의 외곽 여백(Margin)을 일반적인 관행보다 극단적으로 넓히거나, 단과 단 사이의 물리적 간격인 거터(Gutter)를 과감하게 확장하는 기법은 얀 치홀트(Jan Tschichold)나 반 드 그라프 캐논(Van 아프 캐논(Van de Graaf Canon) 같은 고전적인 페이지 구성 비율 이론에서도 그 중요성이 지속적으로 강조되어 왔다. 이는 단순히 테두리를 두껍게 하는 것을 넘어, 콘텐츠가 캔버스의 가장자리 밖으로 시각적으로 새어나가는 것을 강력하게 차단하고 지면 중앙부로 에너지를 응집시키는 록인(Lock-in) 효과를 창출한다.</p>
+                                    <p class="editorial-p text-sm">외곽 빈 단이 거대해지면, 지면 중앙에 놓인 텍스트 블록이나 단일 이미지는 마치 끝없이 펼쳐진 여백의 바다 한가운데 떠 있는 외로운 섬처럼 강렬한 시각적 고립감을 획득하게 된다. 인간의 눈은 넓은 여백을 무의식적으로 장벽으로 인식하기 때문에, 독자의 시선은 밖으로 흩어지지 못하고 중앙의 콘텐츠 내부로 갇히게 된다. 이러한 극단적인 몰입감은 대상에 대한 경외심을 불러일으키며, 콘텐츠 자체에 범접할 수 없는 프리미엄(Premium) 가치와 하이엔드적 속성을 부여한다.</p>
+                                </div>
+                                <div>
+                                    <p class="editorial-p text-sm">이는 루브르 박물관의 &lt;모나리자&gt;와 같이 세계적인 명작 주변에 설치된 거대한 빈 공간과 벨벳 차단봉(Velvet Rope)의 원리와 정확히 일치한다. 명작 주변에 설정된 넓은 물리적 거리는 다른 평범한 작품들과의 시각적 간섭을 철저히 배제하고, 수많은 관람객이 오직 그 단 하나의 대상에만 숨죽여 시선을 집중하도록 강제한다. 종이 또는 디지털 화면 위에 넉넉하게 잡힌 외곽 여백 역시 콘텐츠의 가치를 비약적으로 높이는 보이지 않는 차단봉이자, 무대 위의 단독 스포트라이트 역할을 충실히 수행하는 것이다.</p>
+                                </div>
+                            </div>
+                            <!-- Hero Card -->
+                            <div class="border border-gray-200 flex flex-col lg:flex-row mb-12">
+                                <div class="w-full lg:w-[40%] bg-gray-50 h-72 lg:h-auto flex items-center justify-center p-12 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-200">
+                                    <div class="w-full h-full max-w-[240px] flex gap-3 p-6 bg-white border border-gray-200 shadow-sm">
+                                        <div class="w-1/4 bg-transparent border border-dashed border-gray-300 relative"></div>
+                                        <div class="w-1/2 bg-gray-400 flex items-center justify-center"><span class="text-[10px] text-white tracking-widest font-medium uppercase">Focus</span></div>
+                                        <div class="w-1/4 bg-transparent border border-dashed border-gray-300 relative"></div>
+                                    </div>
+                                </div>
+                                <div class="w-full lg:w-[60%] p-16 flex flex-col justify-center">
+                                    <h5 class="text-2xl font-medium mb-4 text-gray-900 display-text">조명을 켜는 무대 효과</h5>
+                                    <p class="text-gray-600 text-sm font-light leading-relaxed">12단 그리드 중 양쪽 끝 3단씩 총 6단을 비워버리고 오직 중앙의 6단만 사용하는 등 극단적으로 좁은 콘텐츠 영역을 설정합니다. 주변의 광활한 여백 전체가 중앙의 콘텐츠로 향하는 강렬한 스포트라이트 역할을 합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 실무 확장 기법 -->
+                <div class="border-b border-gray-200 pb-40">
+                    <h3 class="text-3xl font-medium mb-12 text-gray-900 display-text">3. 실무 확장 기법: 그리드 제어와 공간의 해부학적 접근</h3>
+                    <p class="editorial-p max-w-4xl mb-24">단순히 수직적인 단(Column)을 비우는 일차원적 접근을 넘어, 하이엔드 실무 레이아웃에서는 지면의 여백을 상하좌우 및 미시적 차원에서 입체적으로 통제하는 섬세한 기술들이 동원된다. 다음의 확장 기법들은 타이포그래피의 시각적 밀도를 조절하고 구조적 완결성을 극대화하는 데 필수적인 방법론이다.</p>
+
+                    <div class="space-y-24">
+                        <!-- 3.1 행라인 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">3.1. 행라인 (Hangline): 중력과 질서를 부여하는 스위스 타이포그래피 기법</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <p class="editorial-p text-sm">다단 그리드가 지면을 수직(Column)으로 엄격하게 분할한다면, 행라인(Hangline)은 지면을 수평(Row)으로 분할하는 강력한 보이지 않는 축이다. 페이지의 상단부(혹은 디자인 의도에 따라 하단부)를 의도적으로 텅 비워두고, 그 아래로 모든 텍스트 단락, 이미지, 캡션 등의 요소들이 마치 하나의 수평선에 매달린 것처럼 일제히 정렬되는 이 방식은 스위스 타이포그래피와 모듈러 그리드(Modular Grid) 시스템의 가장 상징적인 기법 중 하나다.</p>
+                                <p class="editorial-p text-sm">행라인은 페이지의 상단에 넉넉한 숨통(Breathing space)을 영구적으로 확보해 줌으로써, 정보가 위에서 아래로 떨어지는 자연스러운 중력의 법칙을 따르는 듯한 시각적 인상을 창출한다. 특히 수십, 수백 장으로 구성된 매거진, 도록, 애뉴얼 리포트 등에서 페이지가 계속 넘어가더라도 항상 동일한 높이의 보이지 않는 선에서 본문이 시작되게 함으로써, 독자에게 흔들림 없는 시각적 일관성과 편집의 신뢰감을 부여한다. 건축에서 이질적인 매스들을 하나의 질서로 정렬시키기 위해 설정하는 '데이텀(Datum)'이나, 팽팽하게 당겨진 '빨랫줄'에 비유할 수 있다.</p>
+                            </div>
+                        </div>
+
+                        <!-- 3.2 능동적 여백 vs 수동적 여백 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">3.2. 능동적 여백(Active Whitespace) vs 수동적 여백(Passive Whitespace)의 인지적 차이</h4>
+                            <p class="editorial-p text-sm mb-12 max-w-4xl">여백의 본질적인 속성을 이해하는 것은 디자이너가 캔버스를 얼마나 장악하고 있는지를 판가름하는 척도다. 게슈탈트 심리학(Gestalt Psychology)의 '전경과 배경(Figure and Ground)' 원리 및 시각 인지 이론에 따르면, 여백은 그것이 형성된 의도와 과정에 따라 '능동적 여백'과 '수동적 여백'으로 명확히 구분되어야 한다.</p>
+                            
+                            <div class="overflow-x-auto border border-gray-200">
+                                <table class="w-full text-left text-sm text-gray-700 font-light border-collapse">
+                                    <thead class="bg-gray-50 border-b border-gray-200 text-gray-900 font-medium">
+                                        <tr>
+                                            <th class="py-6 px-8 border-r border-gray-200 w-1/6">구분</th>
+                                            <th class="py-6 px-8 border-r border-gray-200 w-2/5">수동적 여백 (Passive Whitespace)</th>
+                                            <th class="py-6 px-8 w-2/5">능동적 여백 (Active Whitespace)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-100">
+                                            <td class="py-6 px-8 border-r border-gray-100 font-medium text-gray-900">개념적 정의</td>
+                                            <td class="py-6 px-8 border-r border-gray-100 leading-relaxed">그래픽 요소나 텍스트를 배치하고 화면 가장자리에 '수동적으로 남겨진' 찌꺼기 공간.</td>
+                                            <td class="py-6 px-8 leading-relaxed">전체적인 시각 구조를 돋보이게 하고 특정 메시지를 강조하기 위해 철저한 계산하에 '의도적으로 비워둔' 공간.</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100">
+                                            <td class="py-6 px-8 border-r border-gray-100 font-medium text-gray-900">주요 기능</td>
+                                            <td class="py-6 px-8 border-r border-gray-100 leading-relaxed">콘텐츠 간의 물리적 충돌을 방지하고 가독성을 확보하기 위한 최소한의 물리적 거리 (기본적인 글자 간격, 기본 단 간격 등).</td>
+                                            <td class="py-6 px-8 leading-relaxed">독자의 시선 이동 방향을 능동적으로 유도하고, 정보의 위계를 설정하며, 디자인 전체에 다이내믹한 에너지를 부여하는 적극적 커뮤니케이션 수단.</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100">
+                                            <td class="py-6 px-8 border-r border-gray-100 font-medium text-gray-900">형태적 성격</td>
+                                            <td class="py-6 px-8 border-r border-gray-100 leading-relaxed">대체로 중앙 대칭적(Symmetrical)이며 정적이고 무의식적인 결과물로 나타남. 디자인 요소로서의 인지도가 낮음.</td>
+                                            <td class="py-6 px-8 leading-relaxed">비대칭적(Asymmetrical)이고 역동적이며, 형태 그 자체로 강력한 조형적 의도를 띰. 종종 긍정적 형태보다 더 강한 시각적 인상을 남김.</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-6 px-8 border-r border-gray-100 font-medium text-gray-900">공간적 비유</td>
+                                            <td class="py-6 px-8 border-r border-gray-100 leading-relaxed">건물을 짓고 어쩔 수 없이 남은 건물 뒤편의 자투리땅이나 평범한 아스팔트 주차장. 존재하지만 아무런 심미적 감흥을 주지 못함.</td>
+                                            <td class="py-6 px-8 leading-relaxed">채광과 바람의 길, 거주자의 동선을 철저히 계산하여 건물 한가운데 의도적으로 비워둔 중정(Courtyard). 아무것도 채워져 있지 않지만 미학을 완성함.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-sm font-medium text-gray-900 mt-6 pl-4 border-l-2 border-gray-900">수석 에디토리얼 디자이너의 역량은 주어진 지면 내에서 무의미하게 방치된 수동적 여백을 철저히 찾아내어 제거하고, 이를 얼마나 밀도 있게 계산된 능동적 여백으로 치환해 낼 수 있는가에 전적으로 달려 있다.</p>
+                        </div>
+
+                        <!-- 3.3 마이크로 공간 분리 -->
+                        <div>
+                            <h4 class="text-2xl font-medium mb-8 text-gray-900 display-text">3.3. 마이크로 공간 분리(Micro Space Separation): 위계를 극대화하는 미세한 틈새의 미학</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <p class="editorial-p text-sm">그리드의 '단(Column)'이나 페이지 단위의 거대한 여백이 거시적 공간(Macro Whitespace)을 다루는 것이라면, 자간(Tracking), 행간(Leading), 단락 간격, 그리고 이미지와 캡션 사이의 간격은 미시적 공간(Micro Whitespace)을 다루는 영역이다. 하이엔드 레이아웃은 이 마이크로 공간을 극도로 섬세하게 통제하여 텍스트 덩어리의 질감을 결정하고 정보의 위계를 극대화한다.</p>
+                                <p class="editorial-p text-sm">헤드라인과 본문 사이의 간격을 일반적인 단락 간격보다 2~3배 넓게 띄우거나, 본문을 담은 단과 캡션을 담은 단 사이에 보이지 않는 투명한 벽(거터)을 아주 정밀하게 설정하면, 독자는 폰트의 물리적 변화 없이도 두 정보가 완전히 다른 층위를 가지고 있음을 즉각적으로 인지하게 된다. 고급 건축물 대리석 타일 간의 정밀한 줄눈(Joint)처럼 픽셀 단위의 미세한 제어가 타이포그래피의 완성도를 결정짓는다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 브랜드 레퍼런스 심층 분석 (7 Items List) -->
+                <div class="border-b border-gray-200 pb-40">
+                    <h3 class="text-3xl font-medium mb-12 text-gray-900 display-text">4. 실무 및 브랜드 레퍼런스 심층 분석: 여백이 창출하는 시각적 권위</h3>
+                    <p class="editorial-p max-w-4xl mb-24">추상적으로 학습된 이론을 시각적으로 온전히 체화하기 위해서는 최고의 결과물들을 해부해야 한다. 글로벌 하이엔드 매거진, 조용한 럭셔리와 미니멀리즘을 추구하는 브랜드, 그리고 타이포그래피 역사상 가장 중요한 전환점을 만든 고전 레퍼런스 7가지를 분석한다. 학생들은 제시된 검색 키워드를 통해 해당 레이아웃을 직접 확인하며 빈 단의 시각적 효과를 관찰할 수 있다.</p>
+
+                    <div class="space-y-12">
+                        <!-- Item 1 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.1. 킨포크 (Kinfolk) 매거진</h4>
+                            <p class="text-gray-500 font-medium mb-6">'6단 그리드'를 통한 극단적 절제와 느린 호흡</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Kinfolk editorial grid spread</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 알렉스 헌팅 스튜디오의 아트 디렉팅 아래 리디자인을 거친 킨포크는 철저하게 계산된 '6단 그리드(6-column grid)' 시스템을 확고한 뼈대로 삼는다. 커스텀 타입페이스를 개발해 여백 속에서 활자가 더욱 정교하게 안착하도록 했다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 6개의 단 중 지면 좌우 외곽 1~2개 단을 의도적으로 완전히 비워두는(외곽 빈 단 및 좌측 빈 단의 극대화) 파격적인 방식을 취한다. 지면의 50% 이상을 비워 독자가 매우 느리고 사색적인 속도로 텍스트를 음미하게 유도하며, '조용한 럭셔리(Quiet Luxury)' 효과를 발생시킨다.</p>
+                        </div>
+                        
+                        <!-- Item 2 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.2. 시리얼 (Cereal) 매거진</h4>
+                            <p class="text-gray-500 font-medium mb-6">폰트 크기의 위계를 대체하는 '네거티브 스페이스'</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Studio Faculty Cereal layout</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 미니멀리즘 매거진의 양대 산맥인 시리얼은 스튜디오 패컬티 주도의 리디자인을 통해 일관된 '8단 그리드(8-column grid)'로 정밀하게 구획되어 있다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 폰트 크기 차이를 최소화하는 대신(본문 8.5pt, 캡션 6pt), 헤드라인 주변 상단과 좌우 단을 텅 비워 거대한 능동적 여백(Negative Space)을 형성한다. 폰트의 물리적 크기가 작더라도 광활하게 비워진 단이 주변을 고요하게 에워싸 자연스럽게 시선이 집중되는 우아한 제어 기법이다.</p>
+                        </div>
+
+                        <!-- Item 3 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.3. 무인양품 (MUJI)</h4>
+                            <p class="text-gray-500 font-medium mb-6">'공(Emptiness)'의 철학과 마(間)의 시각화</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Kenya Hara Muji poster layout</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 하라 켄야(Kenya Hara)가 이끄는 무인양품의 시각 전략은 서구의 미니멀리즘을 넘어 일본 전통 미학인 '마(間)'와 '공(Emptiness)'의 철학을 시각적으로 구현한다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 포스터나 카탈로그에서 화면의 70% 이상에 해당하는 상단 또는 우측 단 전체를 철저히 비워둔다. 이 거대한 빈 단은 "수용자의 상상력이 뛰어놀 수 있는 빈 그릇"으로서, 독자가 제품의 물성과 본질 그 자체에 온전히 감각을 열게 만드는 몰입 효과를 낳는다.</p>
+                        </div>
+
+                        <!-- Item 4 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.4. 애플 (Apple) 웹사이트 제품 페이지</h4>
+                            <p class="text-gray-500 font-medium mb-6">디지털 스크롤링을 지배하는 매크로 여백</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Apple product page whitespace</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 애플은 전통적 인쇄 매체의 에디토리얼 그리드와 여백 제어 원리를 디지털 웹 디자인에 완벽하게 치환하여 구사한다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 제품 텍스트 좌측 단과 이미지 우측 단이 교차하며, 섹션 사이마다 거대한 외곽 빈 단(Macro Whitespace)을 세팅한다. 이 능동적 여백은 브라우저 내 시각적 노이즈를 증발시키며, 스크롤할 때마다 조명이 세팅된 새로운 갤러리 룸에 입장하는 듯한 프리미엄 감각을 선사한다.</p>
+                        </div>
+
+                        <!-- Item 5 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.5. 요제프 뮐러 브로크만의 포스터 (1959)</h4>
+                            <p class="text-gray-500 font-medium mb-6">수학적 공간 분할과 극단적 행라인</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Josef Müller-Brockmann Der Film poster 1959</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 스위스 스타일의 선구자인 요제프 뮐러 브로크만의 작품 중, 빈 단과 그리드 제어의 정수로 꼽히는 전시 포스터다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 수학적 모듈러 그리드를 바탕으로 상단의 거대한 절반 공간을 텍스트 없이 완전히 텅 비웠다. 형태(Figure)와 배경(Ground)의 관계를 극대화한 비대칭 구조가 객관성을 유지하면서도 강렬한 타격감을 전달한다. 텅 빈 공간 자체가 척추 역할을 하는 고전적 사례다.</p>
+                        </div>
+
+                        <!-- Item 6 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.6. 얀 치홀트 (Jan Tschichold)의 신타이포그래피 (1928)</h4>
+                            <p class="text-gray-500 font-medium mb-6">대칭 정렬의 파괴</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Jan Tschichold Die Neue Typographie 1928</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 20세기 초 유럽 인쇄계를 지배하던 중앙 대칭 정렬을 파괴하고 비대칭 레이아웃 시대를 연 치홀트의 선언적 저서다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 산세리프 서체를 지면 좌측으로 밀착시키고 우측 단을 들쭉날쭉한 비대칭 여백(Ragged right)으로 남기거나 반대편에 광활한 '빈 단'을 조성했다. 수직 수평의 기하학적 긴장감을 유발하여 인쇄물을 추상화처럼 보이게 한 혁명적 시각 효과를 낳았다.</p>
+                        </div>
+
+                        <!-- Item 7 -->
+                        <div class="p-12 border border-gray-200 bg-white hover:border-gray-900 transition-colors group">
+                            <h4 class="text-2xl font-medium text-gray-900 mb-2 display-text group-hover:underline cursor-pointer">4.7. 폴 랜드 (Paul Rand)의 IBM 아이덴티티 매뉴얼</h4>
+                            <p class="text-gray-500 font-medium mb-6">기업 브랜딩과 그리드 여백의 만남</p>
+                            <p class="text-xs text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4 block">권장 검색어: Paul Rand IBM Graphic Standards Manual grid</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed mb-4"><strong class="font-medium text-gray-900">레퍼런스 심층 분석:</strong> 스위스 스타일의 그리드 시스템을 미국식 기업 아이덴티티 브랜딩에 접목한 선구자 폴 랜드의 가이드라인이다.</p>
+                            <p class="text-sm text-gray-700 font-light leading-relaxed"><strong class="font-medium text-gray-900">빈 단의 적용 및 시각적 효과:</strong> 로고와 텍스트가 지면의 극히 일부만 차지하고 다단 그리드 중 70% 면적을 텅 빈 단으로 남긴다. IBM이라는 브랜드의 완결성, 정확성, 압도적인 신뢰성을 기술적 나열이 아닌 철저히 구획되고 비워진 공간 자체로 대변한 역사적 사례다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Do's & Don'ts -->
+                <div class="border-b border-gray-200 pb-40">
+                    <h3 class="text-3xl font-medium mb-12 text-gray-900 display-text">5. 실무 적용 팁: 포트폴리오 빈 단 적용 Do's & Don'ts</h3>
+                    <p class="editorial-p max-w-4xl mb-24">디자인 아카데미 학생들이 표면적인 겉모습만 흉내 내어 무작정 화면의 텍스트를 줄이고 비우기만 한다면 큰 낭패를 본다. 뼈대가 무너진 '허허벌판(수동적 여백)'이 되기 십상이기 때문이다. 포트폴리오에 성공적으로 빈 단 기법을 적용하기 위한 절대 원칙을 분석한다.</p>
+
+                    <div class="space-y-0 border-t border-gray-900">
+                        <!-- Row 1 -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 border-b border-gray-200 py-16">
+                            <div class="md:col-span-2 font-medium text-gray-900 text-lg">그리드 설계</div>
+                            <div class="md:col-span-5 pr-0 md:pr-10">
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-4 font-medium">피해야 할 함정과 오류 (Don'ts)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">의도 없는 파편화 (Floating)</h5>
+                                <p class="text-sm text-gray-600 font-light leading-relaxed">그리드 시스템의 구속력 없이 단지 여백이 많아 보이고 예뻐 보이기 위해 텍스트 상자와 이미지를 무작위로 흩뿌리는 행위. 이는 빈 단이 시각적 긴장감을 형성하는 것이 아니라 요소들이 우주 공간을 떠도는 듯한 극도의 불안감을 준다.</p>
+                            </div>
+                            <div class="md:col-span-5 pl-0 md:pl-10 md:border-l border-gray-100">
+                                <div class="text-[10px] text-gray-900 uppercase tracking-widest mb-4 font-semibold">반드시 지켜야 할 원칙 (Do's)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">엄격한 그리드의 안착</h5>
+                                <p class="text-sm text-gray-700 font-light leading-relaxed">화면을 비우기 위해서는 역설적으로 가장 촘촘하게 나누어야 한다. 6단, 8단, 12단 등의 정교한 모듈러 그리드를 먼저 세운 후, '이 구획 중 정확히 몇 번째 단을 통째로 비울 것인가'를 수학적으로 결단하라. 여백은 뼈대(Grid) 위에서만 힘을 발휘한다.</p>
+                            </div>
+                        </div>
+                        <!-- Row 2 -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 border-b border-gray-200 py-16">
+                            <div class="md:col-span-2 font-medium text-gray-900 text-lg">가독성 제어</div>
+                            <div class="md:col-span-5 pr-0 md:pr-10">
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-4 font-medium">피해야 할 함정과 오류 (Don'ts)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">독해 흐름 단절</h5>
+                                <p class="text-sm text-gray-600 font-light leading-relaxed">하나의 긴 본문 단락 중간을 무맥락으로 비워버리거나, 직결되어야 할 헤드라인과 본문 사이에 지나치게 거대한 빈 단을 비대칭적으로 설정하는 경우. 게슈탈트의 근접성 원리가 파괴되어 독자는 정보 습득을 포기하게 된다.</p>
+                            </div>
+                            <div class="md:col-span-5 pl-0 md:pl-10 md:border-l border-gray-100">
+                                <div class="text-[10px] text-gray-900 uppercase tracking-widest mb-4 font-semibold">반드시 지켜야 할 원칙 (Do's)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">마이크로 공간 통제</h5>
+                                <p class="text-sm text-gray-700 font-light leading-relaxed">거대한 매크로 여백을 돋보이게 하려면 본문의 자간, 행간, 단락 간격을 텐션 있게 조여주어야 한다. 텍스트 블록 자체가 헐겁지 않은 하나의 묵직한 덩어리(Solid block)로 뭉쳐야 주변 빈 공간과 가장 아름다운 조형적 대비를 이룬다.</p>
+                            </div>
+                        </div>
+                        <!-- Row 3 -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 border-b border-gray-200 py-16">
+                            <div class="md:col-span-2 font-medium text-gray-900 text-lg">공간의 성격</div>
+                            <div class="md:col-span-5 pr-0 md:pr-10">
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-4 font-medium">피해야 할 함정과 오류 (Don'ts)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">수동적 여백의 방치</h5>
+                                <p class="text-sm text-gray-600 font-light leading-relaxed">구태의연한 중앙 정렬 후 남은 여백이나 텍스트를 몰아넣고 남겨진 빈 공간을 보며 '미니멀리즘'이라 착각하는 것. 조형적 에너지도 방향성도 없는 죽은 공간(Passive space)에 불과하다.</p>
+                            </div>
+                            <div class="md:col-span-5 pl-0 md:pl-10 md:border-l border-gray-100">
+                                <div class="text-[10px] text-gray-900 uppercase tracking-widest mb-4 font-semibold">반드시 지켜야 할 원칙 (Do's)</div>
+                                <h5 class="font-medium text-gray-900 mb-3 text-lg">목적성 띤 비대칭 & 행라인</h5>
+                                <p class="text-sm text-gray-700 font-light leading-relaxed">빈 단으로 다이내믹한 리듬을 원한다면 좌측이나 우측 단을 완전히 비워 비대칭의 불안정성을 조성하되, 상단의 행라인(Hangline)을 강박적으로 맞추어 화면 전체에 수평적 안정감을 제공해야 한다. 훌륭한 디자인은 긴장과 안정의 밀당이다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. 결론 -->
+                <div class="pb-24">
+                    <h3 class="text-3xl font-medium mb-12 text-gray-900 display-text">6. 결론: 비움으로써 구조를 완성하는 궁극의 타이포그래피 철학</h3>
+                    <p class="editorial-p max-w-4xl">현대의 하이엔드 시각 커뮤니케이션과 에디토리얼 레이아웃에서 여백은 콘텐츠를 받쳐주는 단순한 2차원적 배경지(Background)가 결코 아니다. 여백은 독자의 무의식과 시각적으로 소통하며 브랜드의 수준을 대변하는 가장 강력하고 우아한 타이포그래피 언어 그 자체다.</p>
+                    <p class="editorial-p max-w-4xl">연구를 통해 살펴본 바와 같이, 좌측 빈 단은 갤러리 입구의 정중한 안내원처럼 독자의 시선을 부드럽게 본문으로 이끌며 정보의 진입 장벽을 낮춘다. 비대칭 빈 단은 기하학적인 건축의 파사드처럼 지면 위에 지루할 틈 없는 시각적 리듬과 역동적인 긴장감을 연주한다. 그리고 과감히 확장된 외곽 빈 단과 마이크로 공간의 통제는, 대상을 넓은 바다 한가운데 고립시키는 록인(Lock-in) 효과를 통해 평범한 콘텐츠에 감히 범접할 수 없는 프리미엄 가치와 몰입의 순간을 부여한다.</p>
+                    <p class="editorial-p max-w-4xl">스위스 스타일을 태동시킨 거장들부터 동시대를 지배하는 브랜드에 이르는 시각 커뮤니케이터들은 하나의 공통된 진리를 증명해 냈다. 이들은 '무엇을 더 채울 것인가'를 고민하는 더하기의 기술이 아니라, '무엇을 비울 것인가'를 결단하는 빼기의 철학을 통해 디자인의 정점에 올랐다. 수학적으로 치밀한 모듈러 그리드와 행라인을 뼈대로 삼으면서도, 능동적 여백(Active Whitespace)이라는 숨통을 통해 차가운 그리드에 인간적인 호흡과 생명력을 불어넣었다.</p>
+                    <p class="editorial-p max-w-4xl font-medium text-gray-900 mt-12">"지면의 여백을 완벽하게 다루는 자가 곧 전체 레이아웃의 운명을 지배한다." 무의미하고 소란스러운 장식의 중첩을 멈추고, 명확한 목적성을 지닌 '공간의 비움'을 실천할 때 비로소 진정한 하이엔드 디자인의 본질에 다가설 수 있을 것이다.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="section-resources" class="view-section hidden animate-fade-in">
+            <div class="mb-24 max-w-4xl">
+                <h2 class="text-4xl font-medium mb-6 text-gray-900 display-text">리소스 라이브러리</h2>
+                <p class="text-gray-700 text-lg font-light">수강생들이 원리를 눈으로 익히고 실무에 즉각 적용해 볼 수 있는 튜토리얼 및 아티클 모음입니다.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+                <!-- Resource 1 -->
+                <div class="p-12 lg:p-16 border border-gray-200">
+                    <h3 class="font-medium text-2xl mb-10 text-gray-900 display-text">1. 베이스라인 그리드 적용 가이드</h3>
+                    <ul class="space-y-10">
+                        <li>
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">YouTube: Jesse Showalter - "Baseline Grids in UI"</div>
+                            <div class="text-sm text-gray-600 font-light">UI 디자인 환경에서 베이스라인이 뼈대 역할을 하는 원리를 설명하며, 폰트 사이즈가 4px/8px 배수와 어떻게 수학적으로 맞아떨어지는지 직관적으로 보여줍니다.</div>
+                        </li>
+                        <li>
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">YouTube: Andrew Coyle - "4 point grid in Figma"</div>
+                            <div class="text-sm text-gray-600 font-light">피그마(Figma)에서 직접 8px 배수 타이포그래피 스타일을 세팅하여 수직 리듬을 구축하는 실무 튜토리얼.</div>
+                        </li>
+                        <li class="pt-8 border-t border-gray-100">
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">팁: InDesign 기준선 격자 정렬</div>
+                            <div class="text-sm text-gray-600 font-light">인디자인의 단락 스타일 메뉴에서 '기준선 격자에 정렬(Align to baseline grid)'을 켜서 텍스트 상자를 이동해도 글씨가 격자에 자석처럼(Snap) 붙게 만드는 방법을 꼭 숙지하세요. (참고 검색어: Haydn Symons Blog)</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Resource 2 -->
+                <div class="p-12 lg:p-16 border border-gray-200">
+                    <h3 class="font-medium text-2xl mb-10 text-gray-900 display-text">2. 스캐너블(Scannable) 텍스트 구조화</h3>
+                    <ul class="space-y-10">
+                        <li>
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">YouTube: Adobe Live (Cory Hall 편)</div>
+                            <div class="text-sm text-gray-600 font-light">그리드를 활용해 텍스트 덩어리를 쪼개고, 독자가 핵심 정보를 빠르게 파악(Scan)하도록 가독성을 극대화하는 노하우.</div>
+                        </li>
+                        <li>
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">NN/g (Nielsen Norman Group) 리포트</div>
+                            <div class="text-sm text-gray-600 font-light">웹 권위 기관. 사용자가 글을 안 읽고 'F자 모양'으로 훑어본다는 시선 추적 연구입니다. 긴 글 대신 불릿(Bullet), 볼드체, 소제목을 써야 하는 과학적 근거가 됩니다.</div>
+                        </li>
+                        <li class="pt-8 border-t border-gray-100">
+                            <div class="font-medium text-gray-900 text-base mb-3 display-text">Learn UI Design: "Too much text" 실수</div>
+                            <div class="text-sm text-gray-600 font-light">주니어 포트폴리오의 가장 큰 실수인 '글폭탄'. 텍스트는 단순히 요약되는 것을 넘어 리스트와 여백을 통해 면접관이 '스캔하기 좋게' 디자인되어야 함을 강조합니다.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // 탭 네비게이션 로직
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.view-section');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                navBtns.forEach(b => {
+                    b.classList.remove('active', 'border-gray-900', 'text-gray-900');
+                    b.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                btn.classList.add('active', 'border-gray-900', 'text-gray-900');
+                btn.classList.remove('border-transparent', 'text-gray-500');
+                
+                sections.forEach(sec => sec.classList.add('hidden'));
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(targetId).classList.remove('hidden');
+            });
+        });
+
+        // 1부: 그리드 데이터 및 5가지 트렌드 예시 와이어프레임 구조
+        const gridData = {
+            manuscript: {
+                title: "블록/원고지 그리드 (Manuscript)",
+                className: "grid-manuscript",
+                html: `<div class="demo-item"></div>`,
+                examples: [
+                    { name: "Medium 아티클", desc: "가운데 정렬된 쾌적한 에세이 본문", wireframe: `<div class="w-1/2 h-full bg-gray-200 mx-auto rounded-[1px]"></div>` },
+                    { name: "노션(Notion) 기본 뷰", desc: "단일 흐름의 텍스트와 넓은 양옆 여백", wireframe: `<div class="w-2/3 h-full bg-gray-200 rounded-[1px]"></div>` },
+                    { name: "전자책(e-Book) 리더", desc: "독서에 최적화된 화면 꽉 찬 블록", wireframe: `<div class="w-full h-full bg-gray-200 rounded-[1px] p-2 flex flex-col gap-2"><div class="h-2 bg-gray-400 w-3/4"></div><div class="h-2 bg-gray-400 w-full"></div><div class="h-2 bg-gray-400 w-5/6"></div></div>` },
+                    { name: "애플(Apple) 약관 페이지", desc: "법률 등 긴 텍스트의 가독성 확보", wireframe: `<div class="w-3/4 h-full bg-gray-200 mx-auto rounded-[1px] flex flex-col gap-2 pt-4"><div class="h-[2px] bg-gray-400 w-full"></div><div class="h-[2px] bg-gray-400 w-full"></div></div>` },
+                    { name: "포트폴리오 인트로", desc: "중앙에 짧은 문장 하나만 둔 감성 뷰", wireframe: `<div class="w-full h-full flex items-center justify-center"><div class="w-1/3 h-2 bg-gray-400 rounded-[1px]"></div></div>` }
+                ]
+            },
+            column: {
+                title: "단 그리드 (Column Grid)",
+                className: "grid-column",
+                html: `<div class="demo-item"></div><div class="demo-item"></div><div class="demo-item"></div>`,
+                examples: [
+                    { name: "뉴욕타임스 (NYT)", desc: "다단으로 나뉜 촘촘한 뉴스 웹사이트", wireframe: `<div class="w-full h-full flex gap-2"><div class="flex-1 bg-gray-200 rounded-[1px]"></div><div class="flex-1 bg-gray-200 rounded-[1px]"></div><div class="flex-1 bg-gray-200 rounded-[1px]"></div></div>` },
+                    { name: "보그(Vogue) 웹진", desc: "이미지와 텍스트의 2단 분리 에디토리얼", wireframe: `<div class="w-full h-full flex gap-2"><div class="w-2/3 bg-gray-200 rounded-[1px]"></div><div class="w-1/3 bg-gray-400 rounded-[1px]"></div></div>` },
+                    { name: "핀터레스트 피드", desc: "높이가 다른 이미지들의 다단 정렬 (Masonry)", wireframe: `<div class="w-full h-full flex gap-2"><div class="flex-1 flex flex-col gap-2"><div class="h-1/2 bg-gray-200 rounded-[1px]"></div><div class="h-full bg-gray-200 rounded-[1px]"></div></div><div class="flex-1 flex flex-col gap-2"><div class="h-2/3 bg-gray-400 rounded-[1px]"></div><div class="h-1/3 bg-gray-400 rounded-[1px]"></div></div></div>` },
+                    { name: "위키백과 (Wikipedia)", desc: "넓은 본문 단(Column)과 좁은 사이드바", wireframe: `<div class="w-full h-full flex gap-2"><div class="w-1/4 bg-gray-400 rounded-[1px]"></div><div class="w-3/4 bg-gray-200 rounded-[1px]"></div></div>` },
+                    { name: "무신사 매거진", desc: "시원한 이미지 단과 설명 단의 교차 배치", wireframe: `<div class="w-full h-full flex flex-col gap-2"><div class="w-full h-1/2 flex gap-2"><div class="w-1/2 bg-gray-200 rounded-[1px]"></div><div class="w-1/2 bg-gray-400 rounded-[1px]"></div></div><div class="w-full h-1/2 flex gap-2"><div class="w-1/2 bg-gray-400 rounded-[1px]"></div><div class="w-1/2 bg-gray-200 rounded-[1px]"></div></div></div>` }
+                ]
+            },
+            modular: {
+                title: "모듈 그리드 (Modular Grid)",
+                className: "grid-modular",
+                html: Array(16).fill('<div class="demo-item"></div>').join(''),
+                examples: [
+                    { name: "인스타그램 피드", desc: "완벽한 3열 정사각형 모듈 갤러리", wireframe: `<div class="w-full h-full grid grid-cols-3 gap-2"><div class="bg-gray-200 aspect-square rounded-[1px]"></div><div class="bg-gray-200 aspect-square rounded-[1px]"></div><div class="bg-gray-200 aspect-square rounded-[1px]"></div><div class="bg-gray-200 aspect-square rounded-[1px]"></div><div class="bg-gray-200 aspect-square rounded-[1px]"></div><div class="bg-gray-200 aspect-square rounded-[1px]"></div></div>` },
+                    { name: "넷플릭스 썸네일", desc: "동일한 비율의 가로형 포스터 모듈의 반복", wireframe: `<div class="w-full h-full grid grid-cols-3 grid-rows-2 gap-2"><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div></div>` },
+                    { name: "에어비앤비 리스트", desc: "사진+가격 정보가 결합된 정보 카드 모듈", wireframe: `<div class="w-full h-full grid grid-cols-2 gap-2"><div class="bg-gray-200 rounded-[1px] flex flex-col"><div class="h-2/3 bg-gray-400"></div></div><div class="bg-gray-200 rounded-[1px] flex flex-col"><div class="h-2/3 bg-gray-400"></div></div></div>` },
+                    { name: "아이폰 홈 화면", desc: "동일한 크기의 앱 아이콘이 배열된 격자", wireframe: `<div class="w-full h-full grid grid-cols-4 gap-2 p-2"><div class="bg-gray-200 rounded-sm aspect-square"></div><div class="bg-gray-200 rounded-sm aspect-square"></div><div class="bg-gray-200 rounded-sm aspect-square"></div><div class="bg-gray-200 rounded-sm aspect-square"></div></div>` },
+                    { name: "쿠팡 상품 리스트", desc: "수많은 상품을 빽빽하게 정렬하는 바둑판", wireframe: `<div class="w-full h-full grid grid-cols-3 gap-2"><div class="bg-gray-200 rounded-[1px] border border-gray-300"></div><div class="bg-gray-200 rounded-[1px] border border-gray-300"></div><div class="bg-gray-200 rounded-[1px] border border-gray-300"></div></div>` }
+                ]
+            },
+            hierarchical: {
+                title: "계층 그리드 (Hierarchical Grid)",
+                className: "grid-hierarchical",
+                html: `<div class="demo-item hierarchical-1"></div><div class="demo-item hierarchical-2"></div><div class="demo-item hierarchical-3"></div>`,
+                examples: [
+                    { name: "애플 벤토박스 UI", desc: "다양한 크기의 모듈이 비대칭적으로 합쳐진 형태", wireframe: `<div class="w-full h-full grid grid-cols-3 grid-rows-3 gap-2"><div class="col-span-2 row-span-2 bg-gray-400 rounded-sm"></div><div class="bg-gray-200 rounded-sm"></div><div class="bg-gray-200 rounded-sm"></div><div class="col-span-3 bg-gray-200 rounded-sm"></div></div>` },
+                    { name: "유튜브 메인화면", desc: "상단의 큰 프로모션과 하단의 작은 썸네일들", wireframe: `<div class="w-full h-full flex flex-col gap-2"><div class="h-1/2 bg-gray-400 rounded-[1px]"></div><div class="h-1/2 grid grid-cols-3 gap-2"><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div></div></div>` },
+                    { name: "토스(Toss) 앱 홈", desc: "중요도에 따라 카드 높이와 영역이 자유롭게 변화", wireframe: `<div class="w-full h-full flex flex-col gap-2 p-2"><div class="h-1/4 bg-gray-400 rounded-sm"></div><div class="h-1/2 bg-gray-200 rounded-sm"></div></div>` },
+                    { name: "비핸스 디스커버", desc: "가로/세로 비율이 제각각인 썸네일들의 조화", wireframe: `<div class="w-full h-full grid grid-cols-3 gap-2"><div class="col-span-2 bg-gray-400 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="bg-gray-200 rounded-[1px]"></div><div class="col-span-2 bg-gray-200 rounded-[1px]"></div></div>` },
+                    { name: "Bento.me 프로필", desc: "링크, 텍스트, 이미지가 각기 다른 박스에 담김", wireframe: `<div class="w-full h-full grid grid-cols-2 grid-rows-3 gap-2"><div class="row-span-2 bg-gray-400 rounded-sm"></div><div class="bg-gray-200 rounded-sm"></div><div class="bg-gray-200 rounded-sm"></div><div class="col-span-2 bg-gray-200 rounded-sm"></div></div>` }
+                ]
+            }
+        };
+
+        const gridBtns = document.querySelectorAll('.grid-btn');
+        const gridDemoArea = document.getElementById('grid-demo-area');
+        const gridTitle = document.getElementById('grid-title');
+        const examplesContainer = document.getElementById('examples-container');
+
+        function renderExamples(examplesArray) {
+            examplesContainer.innerHTML = ''; 
+            examplesArray.forEach(ex => {
+                const card = document.createElement('div');
+                card.className = "min-w-[200px] md:min-w-[240px] max-w-[260px] flex-shrink-0 border border-gray-200 p-8 bg-white snap-start hover:border-gray-900 transition-colors cursor-default";
+                card.innerHTML = `
+                    <div class="h-32 bg-white border border-gray-100 mb-6 p-4 flex items-center justify-center">
+                        ${ex.wireframe}
+                    </div>
+                    <h5 class="font-medium text-base text-gray-900 truncate mb-3 display-text">${ex.name}</h5>
+                    <p class="text-xs text-gray-600 font-light whitespace-normal">${ex.desc}</p>
+                `;
+                examplesContainer.appendChild(card);
+            });
+        }
+
+        gridBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                gridBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-gray-900', 'text-white', 'border-gray-900');
+                    b.classList.add('text-gray-600');
+                });
+                btn.classList.remove('text-gray-600');
+                btn.classList.add('active', 'bg-gray-900', 'text-white', 'border-gray-900');
+
+                const type = btn.getAttribute('data-grid');
+                const data = gridData[type];
+
+                gridDemoArea.className = `demo-grid-container ${data.className}`;
+                gridDemoArea.innerHTML = data.html;
+                gridTitle.textContent = data.title;
+                
+                renderExamples(data.examples);
+                examplesContainer.scrollLeft = 0;
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('curriculumChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['1부: 이론 (해부학)', '2부: 실무 (배치 규칙)', '3부: 응용 (사례 분석)', '4부: 여백의 마법'],
+                    datasets: [{
+                        data: [15, 45, 25, 15],
+                        backgroundColor: ['#e5e5e5', '#a3a3a3', '#4b5563', '#111827'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 24, font: { family: "'Pretendard', sans-serif", weight: 300 } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            renderExamples(gridData['manuscript'].examples);
+        });
+    </script>
+</body>
+</html>
