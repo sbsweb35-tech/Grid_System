@@ -221,7 +221,7 @@
                     <!-- 직관적인 실무 트렌드 예시 5선 (가로 스크롤 카드) -->
                     <div>
                         <h4 class="font-medium text-xl mb-8 text-gray-900 display-text">가장 직관적인 실무 적용 예시 5선</h4>
-                        <div id="examples-container" class="flex overflow-x-auto gap-8 pb-8 snap-x hide-scrollbar"> 
+                        <div id="examples-container" class="flex overflow-x-auto gap-8 pb-8 snap-x hide-scrollbar cursor-grab active:cursor-grabbing"> 
                             <!-- 예시 카드가 동적으로 주입됩니다 -->
                         </div>
                     </div>
@@ -999,6 +999,8 @@
         const gridData = {
             manuscript: {
                 title: "블록/원고지 그리드 (Manuscript)",
+                metaphor: "비유: 넉넉한 여백을 가진 한 장의 원고지",
+                desc: "화면 중앙에 커다란 텍스트 블록 하나만 배치하는 가장 단순한 형태입니다. 여백(Margin)이 페이지를 감싸며 글을 읽는 호흡을 편안하게 해줍니다.",
                 className: "grid-manuscript",
                 html: `<div class="demo-item"></div>`,
                 examples: [
@@ -1011,6 +1013,8 @@
             },
             column: {
                 title: "단 그리드 (Column Grid)",
+                metaphor: "비유: 규칙적으로 달리는 기차 레일",
+                desc: "페이지를 세로로 여러 단(Column)으로 나눕니다. 텍스트와 이미지를 레일 위에 얹듯 배치하여 정보의 위계를 명확히 하고 가독성을 높입니다.",
                 className: "grid-column",
                 html: `<div class="demo-item"></div><div class="demo-item"></div><div class="demo-item"></div>`,
                 examples: [
@@ -1023,6 +1027,8 @@
             },
             modular: {
                 title: "모듈 그리드 (Modular Grid)",
+                metaphor: "비유: 규칙적인 바둑판 / 레고 블록",
+                desc: "단(가로)뿐만 아니라 행(세로)까지 일정한 간격으로 나누어 수많은 사각형 모듈을 만듭니다. 복잡하고 많은 정보를 통일감 있게 묶어내는 데 탁월합니다.",
                 className: "grid-modular",
                 html: Array(16).fill('<div class="demo-item"></div>').join(''),
                 examples: [
@@ -1035,6 +1041,8 @@
             },
             hierarchical: {
                 title: "계층 그리드 (Hierarchical Grid)",
+                metaphor: "비유: 자유로운 캔버스 속 투명한 기준선",
+                desc: "규칙적인 단이나 모듈에 얽매이지 않고, 콘텐츠의 중요도(계층)에 따라 직관적으로 정보 덩어리를 나눕니다. 역동적이고 비대칭적인 비례감을 줍니다.",
                 className: "grid-hierarchical",
                 html: `<div class="demo-item hierarchical-1"></div><div class="demo-item hierarchical-2"></div><div class="demo-item hierarchical-3"></div>`,
                 examples: [
@@ -1050,7 +1058,36 @@
         const gridBtns = document.querySelectorAll('.grid-btn');
         const gridDemoArea = document.getElementById('grid-demo-area');
         const gridTitle = document.getElementById('grid-title');
+        const gridMetaphor = document.getElementById('grid-metaphor');
+        const gridDesc = document.getElementById('grid-desc');
         const examplesContainer = document.getElementById('examples-container');
+
+        // PC 드래그 스크롤 기능 추가
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        examplesContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - examplesContainer.offsetLeft;
+            scrollLeft = examplesContainer.scrollLeft;
+        });
+
+        examplesContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+
+        examplesContainer.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+
+        examplesContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - examplesContainer.offsetLeft;
+            const walk = (x - startX) * 1.5; // 스크롤 속도
+            examplesContainer.scrollLeft = scrollLeft - walk;
+        });
 
         function renderExamples(examplesArray) {
             examplesContainer.innerHTML = ''; 
@@ -1083,6 +1120,8 @@
                 gridDemoArea.className = `demo-grid-container ${data.className}`;
                 gridDemoArea.innerHTML = data.html;
                 gridTitle.textContent = data.title;
+                gridMetaphor.textContent = data.metaphor;
+                gridDesc.textContent = data.desc;
                 
                 renderExamples(data.examples);
                 examplesContainer.scrollLeft = 0;
